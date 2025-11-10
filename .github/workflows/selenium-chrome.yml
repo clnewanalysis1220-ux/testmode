@@ -1,0 +1,41 @@
+name: Run Chrome Selenium Test
+
+on:
+  schedule:
+    - cron: '3 * * * *'
+  workflow_dispatch:
+
+jobs:
+  run-chrome:
+    runs-on: ubuntu-latest
+    env:
+      GROUPWARE_USER: ${{ secrets.GROUPWARE_USER }}
+      GROUPWARE_PASS: ${{ secrets.GROUPWARE_PASS }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Google Chrome
+        run: |
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo apt-get install -y ./google-chrome-stable_current_amd64.deb
+
+      - name: Install ChromeDriver
+        run: |
+          CHROMEDRIVER_VERSION=$(curl -sS https://chromedriver.storage.googleapis.com/LATEST_RELEASE_104)
+          wget https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip
+          unzip chromedriver_linux64.zip
+          sudo mv chromedriver /usr/local/bin/
+          chmod +x /usr/local/bin/chromedriver
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Install Selenium
+        run: pip install selenium
+
+      - name: Run Chrome Selenium script
+        run: python chrometest.py
+
